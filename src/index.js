@@ -22,17 +22,27 @@ app.post("/account", (req, res) => {
 
 
     const customerAlreadyExists = customers.some(
-        (c) => c.cpf === cpf
+        c => c.cpf === cpf
     )
     if(customerAlreadyExists){
         return res.status(400).json({ error: 'Customer already exists'})
     }
-    
+
     customers.push({
         cpf, name, id, statement: []
     })
 
     return res.status(201).send()
+})
+
+app.get("/statement/:cpf", (req, res) => {
+    const { cpf } = req.params
+
+    const customer = customers.find(c => c.cpf === cpf)
+
+    return res.json(customer.statement)
+
+
 })
 
 app.get('/', (req, res) => {
