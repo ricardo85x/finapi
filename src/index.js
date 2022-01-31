@@ -22,6 +22,20 @@ function verifyIfExistsAccountCPF(req, res, next) {
     return next();
 }
 
+function getBalance(statement) {
+
+    const balance = statement.reduce((acc, item) => {
+        if( item.type === "deposit"){
+            acc+= item.amount
+        } else {
+            acc-= item.amount
+        }
+        return acc
+    }, 0)
+
+    return balance
+}
+
 app.post("/account", (req, res) => {
     const { cpf, name } = req.body
     const id = uuidv4()
@@ -71,9 +85,19 @@ app.post("/deposit", verifyIfExistsAccountCPF, (req, res) => {
     customer.statement.push(statementOperation)
 
     return res.status(201).send()
-
-
-
 }) 
+
+app.post("/withdraw", verifyIfExistsAccountCPF, (req, res) => {
+
+    const  { amount } = req.body
+    const { customer } = req
+
+    const balance = getBalance(customer.statement)
+
+    res.status(200).json({ balance })
+
+
+
+})
 
 app.listen(3333, () => console.log('listening on port 3333'))
