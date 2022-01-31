@@ -24,11 +24,11 @@ function verifyIfExistsAccountCPF(req, res, next) {
 
 function getBalance(statement) {
 
-    const balance = statement.reduce((acc, item) => {
-        if( item.type === "deposit"){
-            acc+= item.amount
+    const balance = statement.reduce((acc, operation) => {
+        if( operation.type === "deposit"){
+            acc+= operation.amount
         } else {
-            acc-= item.amount
+            acc-= operation.amount
         }
         return acc
     }, 0)
@@ -89,12 +89,25 @@ app.post("/deposit", verifyIfExistsAccountCPF, (req, res) => {
 
 app.post("/withdraw", verifyIfExistsAccountCPF, (req, res) => {
 
-    const  { amount } = req.body
+    const  { amount, description } = req.body
     const { customer } = req
 
     const balance = getBalance(customer.statement)
 
-    res.status(200).json({ balance })
+    if(balance < amount ) {
+        return res.status(400).json({ error: "Not enough funds"})
+    }
+
+    const statementOperation = {
+        description, 
+        amount, 
+        created_at: new Date(),
+        type: "withdraw"
+    }
+
+    customer.statement.push(statementOperation)
+
+    return res.status(201).json({ balance: balance - amount })
 
 
 
