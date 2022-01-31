@@ -54,4 +54,26 @@ app.get('/', (req, res) => {
     return res.json({ message: 'Hello, world!' });
 })
 
+
+app.post("/deposit", verifyIfExistsAccountCPF, (req, res) => {
+
+    const { description, amount } = req.body
+
+    const { customer } = req
+
+    const statementOperation = {
+        description, 
+        amount, 
+        created_at: new Date(),
+        type: "deposit"
+    }
+
+    customer.statement.push(statementOperation)
+
+    return res.status(201).send()
+
+
+
+}) 
+
 app.listen(3333, () => console.log('listening on port 3333'))
