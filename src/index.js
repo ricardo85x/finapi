@@ -13,8 +13,8 @@ function verifyIfExistsAccountCPF(req, res, next) {
     const { cpf } = req.headers;
     const customer = customers.find((customer) => customer.cpf === cpf)
 
-    if(!customer) {
-        return res.status(400).json({ error: "Customer not found"})
+    if (!customer) {
+        return res.status(400).json({ error: "Customer not found" })
     }
 
     req.customer = customer
@@ -25,10 +25,10 @@ function verifyIfExistsAccountCPF(req, res, next) {
 function getBalance(statement) {
 
     const balance = statement.reduce((acc, operation) => {
-        if( operation.type === "deposit"){
-            acc+= operation.amount
+        if (operation.type === "deposit") {
+            acc += operation.amount
         } else {
-            acc-= operation.amount
+            acc -= operation.amount
         }
         return acc
     }, 0)
@@ -44,8 +44,8 @@ app.post("/account", (req, res) => {
     const customerAlreadyExists = customers.some(
         c => c.cpf === cpf
     )
-    if(customerAlreadyExists){
-        return res.status(400).json({ error: 'Customer already exists'})
+    if (customerAlreadyExists) {
+        return res.status(400).json({ error: 'Customer already exists' })
     }
 
     customers.push({
@@ -58,9 +58,7 @@ app.post("/account", (req, res) => {
 
 
 app.get("/statement", verifyIfExistsAccountCPF, (req, res) => {
-
     const { customer } = req
-
     return res.json(customer.statement)
 })
 
@@ -70,37 +68,33 @@ app.get('/', (req, res) => {
 
 
 app.post("/deposit", verifyIfExistsAccountCPF, (req, res) => {
-
     const { description, amount } = req.body
-
     const { customer } = req
 
     const statementOperation = {
-        description, 
-        amount, 
+        description,
+        amount,
         created_at: new Date(),
         type: "deposit"
     }
 
     customer.statement.push(statementOperation)
-
     return res.status(201).send()
-}) 
+})
 
 app.post("/withdraw", verifyIfExistsAccountCPF, (req, res) => {
 
-    const  { amount, description } = req.body
+    const { amount, description } = req.body
     const { customer } = req
-
     const balance = getBalance(customer.statement)
 
-    if(balance < amount ) {
-        return res.status(400).json({ error: "Not enough funds"})
+    if (balance < amount) {
+        return res.status(400).json({ error: "Not enough funds" })
     }
 
     const statementOperation = {
-        description, 
-        amount, 
+        description,
+        amount,
         created_at: new Date(),
         type: "withdraw"
     }
@@ -108,9 +102,24 @@ app.post("/withdraw", verifyIfExistsAccountCPF, (req, res) => {
     customer.statement.push(statementOperation)
 
     return res.status(201).json({ balance: balance - amount })
-
-
-
 })
+
+app.get("/statement/date", verifyIfExistsAccountCPF, (req, res) => {
+
+    const { customer } = req
+    const { date } = req.query
+
+    const dateFormat = new Date(date + " 00:00")
+
+    const statement = customer.statement.filter(
+        (statement) => 
+            statement.created_at.toDateString() === 
+                new Date(dateFormat).toDateString()
+    )
+
+
+    return res.json(statement)
+})
+
 
 app.listen(3333, () => console.log('listening on port 3333'))
