@@ -136,4 +136,22 @@ app.get("/account", verifyIfExistsAccountCPF, (req, res) => {
     return res.json(customer)
 })
 
+app.delete("/account", verifyIfExistsAccountCPF, (req,res) => {
+
+    const { customer } = req
+
+    customers = customers.filter(c => c.cpf !== customer.cpf)
+    
+    return res.status(204).send()
+})
+
+
+app.get("/balance", verifyIfExistsAccountCPF, (req, res) => {
+    const { customer } = req
+
+    const balance = getBalance(customer.statement)
+
+    return res.json({balance})
+})
+
 app.listen(3333, () => console.log('listening on port 3333'))
